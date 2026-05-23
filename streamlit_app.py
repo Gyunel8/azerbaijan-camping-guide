@@ -1,34 +1,16 @@
 import streamlit as st
-import requests
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
 import plotly.graph_objects as go
 
-
-@st.cache_data(ttl=3600)
-def get_weather(lat, lon):
-    try:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&hourly=precipitation_probability"
-        r = requests.get(url, timeout=5)
-        data = r.json()
-        w = data["current_weather"]
-        precip = data["hourly"]["precipitation_probability"][0]
-        return {
-            "temp": w["temperature"],
-            "wind": w["windspeed"],
-            "precip": precip
-        }
-    except:
-        return None
-
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Azerbaijan Camping Guide",
     page_icon="🏕️",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
@@ -53,12 +35,6 @@ h1, h2, h3 {
 [data-testid="stSidebar"] .stMultiSelect label {
     color: #c8dfc8 !important;
     font-weight: 500;
-}
-[data-testid="stSidebar"] .stRadio label {
-    color: #ffffff !important;
-}
-[data-testid="stSidebar"] .stRadio div {
-    color: #ffffff !important;
 }
 
 /* Cards */
@@ -132,7 +108,6 @@ def load_data():
     data = [
         {
             "name": "Yeddiler Mountain",
-            "distance_km": 181,
             "region": "Quba",
             "type": "Wild Camping",
             "lat": 41.36, "lon": 48.52,
@@ -150,7 +125,6 @@ def load_data():
         },
         {
             "name": "Tovuz Highlands",
-            "distance_km": 474,
             "region": "Tovuz",
             "type": "Wild Camping",
             "lat": 40.99, "lon": 45.63,
@@ -168,7 +142,6 @@ def load_data():
         },
         {
             "name": "Canyon to Babadağ",
-            "distance_km": 172,
             "region": "İsmayıllı",
             "type": "Wild Camping",
             "lat": 40.79, "lon": 48.14,
@@ -186,7 +159,6 @@ def load_data():
         },
         {
             "name": "Zirəvun Pass",
-            "distance_km": 172,
             "region": "İsmayıllı",
             "type": "Cabin / Guesthouse",
             "lat": 40.72, "lon": 48.01,
@@ -203,8 +175,7 @@ def load_data():
             "description": "High mountain pass on the İsmayıllı–Qəbələ road. Snow in winter, accessible only by GAZ-66 off-road truck."
         },
         {
-            "name": "Hamosham Valley",
-            "distance_km": 304,
+            "name": "Hamışam Valley",
             "region": "Lerik / Astara",
             "type": "Wild Camping",
             "lat": 38.63, "lon": 48.42,
@@ -218,11 +189,10 @@ def load_data():
             "difficulty": "Hard",
             "favorite": True,
             "mosquitoes": False,
-            "description": "Author's favourite place. A cliff-top valley in the subtropical south. In April you camp literally above the clouds — one of the most magical experiences in Azerbaijan."
+            "description": "Author's favourite place. A cliff-top valley in the subtropical south. In April, you camp literally above the clouds — one of the most magical experiences in Azerbaijan."
         },
         {
             "name": "Xızı Colourful Hills",
-            "distance_km": 106,
             "region": "Xızı",
             "type": "Wild Camping",
             "lat": 40.91, "lon": 49.07,
@@ -240,7 +210,6 @@ def load_data():
         },
         {
             "name": "Daşkəsən River Valley",
-            "distance_km": 422,
             "region": "Daşkəsən",
             "type": "Wild Camping",
             "lat": 40.52, "lon": 46.08,
@@ -258,7 +227,6 @@ def load_data():
         },
         {
             "name": "Xaçmaz Forest & Sea",
-            "distance_km": 169,
             "region": "Xaçmaz",
             "type": "Wild Camping",
             "lat": 41.46, "lon": 48.80,
@@ -276,7 +244,6 @@ def load_data():
         },
         {
             "name": "Kəpəz Mountain (Göygöl)",
-            "distance_km": 367,
             "region": "Gəncə / Gədəbəy",
             "type": "Wild Camping",
             "lat": 40.59, "lon": 46.35,
@@ -328,9 +295,7 @@ with st.sidebar:
     hide_mosquitoes = st.checkbox("🦟 Hide places with mosquitoes", value=False)
 
     st.markdown("---")
-    st.markdown("---")
-    st.markdown("### 🏕️ About")
-    st.markdown("<small style='color:#a0b8a0'>Created by an aspiring data analyst passionate about travel and outdoor exploration in Azerbaijan.<br><br>All camping spots were personally visited — this is not just a project, it's a travel diary turned into data.<br><br><b>Data Source:</b> Dataset was manually curated using personal travel experience.<br><br>🚀 <b>V2 coming:</b> AI recommendations, weather API, route planning</small>", unsafe_allow_html=True)
+    st.markdown("<small style='color:#a0b8a0'>Based on real personal experience<br>by an Azerbaijani camper 🏕️</small>", unsafe_allow_html=True)
 
 # ── Filter data ───────────────────────────────────────────────────────────────
 filtered = df[df["region"].isin(selected_regions)]
@@ -358,133 +323,33 @@ def stars(rating):
 # ══════════════════════════════════════════════════════════════════════════════
 if page == "🔍 Find a Camp":
     st.markdown("# 🏕️ Find Your Camp in Azerbaijan")
-    st.markdown("""> *This project helps travelers discover camping destinations in Azerbaijan based on budget, difficulty, and season.*  
-> *All data is based on real personal experience — 9 places visited over multiple years of camping across the country.*""")
+    st.markdown(f"**{len(filtered)} place{'s' if len(filtered) != 1 else ''} match your filters** — all visited personally, all real experiences.")
     st.markdown("---")
-
-    # Key Insights
-    st.markdown("### 💡 Key Insights")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.info("🌍 Most camps are in **northern Azerbaijan** (Quba, İsmayıllı, Xaçmaz)")
-    with col2:
-        st.info("☀️ **Summer** is the most popular season for camping")
-    with col3:
-        st.info("🏔️ Hard-to-reach places average **4.8⭐** vs Easy places **3.5⭐**")
-    st.markdown("---")
-
-    # Quick Picks
-    st.markdown("### 🎯 Quick Picks")
-    qc1, qc2, qc3, qc4, qc5 = st.columns(5)
-    with qc1:
-        st.markdown("""<div style="background:#eaf3ea;border-radius:8px;padding:12px;text-align:center;">
-        🌱<br><b>Best for Beginners</b><br><small>Xızı · Easy · 106km</small></div>""", unsafe_allow_html=True)
-    with qc2:
-        st.markdown("""<div style="background:#e8f0ff;border-radius:8px;padding:12px;text-align:center;">
-        ❄️<br><b>Best Winter Camp</b><br><small>Zirəvun · Cabin · 172km</small></div>""", unsafe_allow_html=True)
-    with qc3:
-        st.markdown("""<div style="background:#fff3e0;border-radius:8px;padding:12px;text-align:center;">
-        ☁️<br><b>Most Magical</b><br><small>Hamosham · Above clouds · 304km</small></div>""", unsafe_allow_html=True)
-    with qc4:
-        st.markdown("""<div style="background:#fce4ec;border-radius:8px;padding:12px;text-align:center;">
-        🏆<br><b>Highest Rated</b><br><small>Yeddiler · 5.0⭐ · 181km</small></div>""", unsafe_allow_html=True)
-    with qc5:
-        st.markdown("""<div style="background:#f3e5f5;border-radius:8px;padding:12px;text-align:center;">
-        🚗<br><b>Closest to Baku</b><br><small>Xızı · 106km · Easy</small></div>""", unsafe_allow_html=True)
-    st.markdown("---")
-
-    # AI Recommendations
-    st.markdown("### 🤖 Ask AI for a Recommendation")
-    user_query = st.text_input("Describe what you're looking for:", placeholder="e.g. I want a peaceful place near water, not too far from Baku")
-    if user_query:
-        with st.spinner("AI is thinking... 🤔"):
-            try:
-                groq_key = st.secrets["GROQ_API_KEY"]
-                camps_summary = df[["name","region","type","rating","difficulty","season","highlight","distance_km","description"]].to_string(index=False)
-                response = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={
-                        "Content-Type": "application/json",
-                        "Authorization": f"Bearer {groq_key}"
-                    },
-                    json={
-                        "model": "llama3-8b-8192",
-                        "max_tokens": 300,
-                        "messages": [{
-                            "role": "user",
-                            "content": f"You are a camping guide for Azerbaijan. Based on this list of camps:\n{camps_summary}\n\nUser request: {user_query}\n\nRecommend the best camp and explain why in 2-3 sentences. Be friendly and specific."
-                        }]
-                    }
-                )
-                result = response.json()
-                answer = result["choices"][0]["message"]["content"]
-                st.success(f"🏕️ {answer}")
-            except Exception as e:
-                st.error("Could not get AI recommendation. Please try again.")
-    st.markdown("---")
-
-    col_sur, col_txt = st.columns([1, 4])
-    with col_sur:
-        st.markdown("""<style>div.stButton > button {background-color: #e67e22; color: white; font-weight: bold; border-radius: 8px; border: none; padding: 8px 20px;} div.stButton > button:hover {background-color: #d35400;}</style>""", unsafe_allow_html=True)
-        surprise = st.button("🎲 Surprise Me!")
-    with col_txt:
-        st.markdown(f"**{len(filtered)} place{'s' if len(filtered) != 1 else ''} match your filters** — all visited personally, all real experiences.")
-    st.markdown("---")
-
-    if surprise and not filtered.empty:
-        pick = filtered.sample(1).iloc[0]
-        st.success(f"🎲 How about **{pick['name']}** in {pick['region']}? {pick['highlight']} — {pick['distance_km']} km from Baku!")
-        st.markdown("---")
 
     if filtered.empty:
         st.warning("No camps match your current filters. Try adjusting them in the sidebar.")
     else:
-        import glob
         for _, row in filtered.iterrows():
-            fav_badge = '<span style="background:#c0392b;color:white;border-radius:4px;padding:2px 7px;font-size:0.75rem;margin-left:8px;">❤️ Favourite</span>' if row["favorite"] else ""
-            mosquito_warn = '<span style="color:#c0392b;font-size:0.8rem"> 🦟 mosquitoes in summer</span>' if row["mosquitoes"] else ""
+            fav_badge = '<span class="fav-badge">❤️ Author\'s Favourite</span>' if row["favorite"] else ""
+            mosquito_warn = '<span style="color:#c0392b; font-size:0.8rem"> 🦟 mosquitoes in summer</span>' if row["mosquitoes"] else ""
             seasons_str = " · ".join(row["season"])
 
-            # find photos for this camp using region name
-            photo_key = row["region"].lower().split("/")[0].strip().split()[0]
-            photo_key = photo_key.replace("İ".lower(), "i").replace("i̇", "i")
-            for ch, rep in [("ə","e"),("ı","i"),("ş","s"),("ç","c"),("ğ","g"),("ö","o"),("ü","u")]:
-                photo_key = photo_key.replace(ch, rep)
-            photo_files = sorted(
-                glob.glob(f"photos/{photo_key}_*.jpg") +
-                glob.glob(f"photos/{photo_key}_*.jpeg") +
-                glob.glob(f"photos/{photo_key}_*.png") +
-                glob.glob(f"photos/{photo_key}.jpg")
-            )
-
-            card_html = f"""
-            <div style="background:#ffffff;border-left:4px solid #3d6b3d;border-radius:8px;padding:18px 20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.07);">
-                <div style="font-family:Georgia,serif;color:#1a2e1a;font-size:1.1rem;font-weight:bold;margin-bottom:6px;">{row['name']} {fav_badge}</div>
-                <div style="color:#555;font-size:0.85rem;margin-bottom:6px;">📍 {row['region']} &nbsp;|&nbsp; 🏷️ {row['type']} &nbsp;|&nbsp; 🚌 {row['transport']} &nbsp;|&nbsp; 💰 {row['price_azn']} AZN/person &nbsp;|&nbsp; 🌡️ {seasons_str} &nbsp;|&nbsp; 🚗 {row['distance_km']} km from Baku {mosquito_warn}</div>
-                <div style="color:#e8a020;font-size:1rem;">{stars(row['rating'])} &nbsp;<span style="color:#333;font-size:0.85rem">{row['rating']}/5 · Difficulty: {row['difficulty']}</span></div>
-                <p style="margin:8px 0 4px 0;color:#333;font-size:0.9rem">{row['description']}</p>
-                <span style="background:#eaf3ea;color:#2d5a2d;border-radius:4px;padding:3px 8px;font-size:0.8rem;">✨ {row['highlight']}</span>
+            st.markdown(f"""
+            <div class="camp-card">
+                <h4>{row['name']} {fav_badge}</h4>
+                <div class="meta">
+                    📍 {row['region']} &nbsp;|&nbsp;
+                    🏷️ {row['type']} &nbsp;|&nbsp;
+                    🚌 {row['transport']} &nbsp;|&nbsp;
+                    💰 {row['price_azn']} AZN/person &nbsp;|&nbsp;
+                    🌡️ {seasons_str}
+                    {mosquito_warn}
+                </div>
+                <div class="stars">{stars(row['rating'])} &nbsp;<span style="color:#333;font-size:0.85rem">{row['rating']}/5 · Difficulty: {row['difficulty']}</span></div>
+                <p style="margin:8px 0 4px 0; color:#333; font-size:0.9rem">{row['description']}</p>
+                <span class="highlight">✨ {row['highlight']}</span>
             </div>
-            """
-
-            # Add weather to card
-            weather = get_weather(row["lat"], row["lon"])
-            if weather:
-                weather_html = f'''<div style="background:#f0f7ff;border-radius:6px;padding:6px 12px;margin-top:-10px;margin-bottom:10px;font-size:0.82rem;color:#444;">
-                🌡️ <b>{weather["temp"]}°C</b> &nbsp;|&nbsp; 💨 {weather["wind"]} km/h &nbsp;|&nbsp; 🌧️ {weather["precip"]}% rain chance today
-                </div>'''
-                st.markdown(card_html + weather_html, unsafe_allow_html=True)
-            # Google Maps button
-            baku_lat, baku_lon = 40.4093, 49.8671
-            maps_url = f"https://www.google.com/maps/dir/{baku_lat},{baku_lon}/{row['lat']},{row['lon']}"
-            st.markdown(f'''<a href="{maps_url}" target="_blank" style="background:#4285F4;color:white;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:0.85rem;margin-bottom:10px;display:inline-block;">🗺️ Get Directions from Baku</a>''', unsafe_allow_html=True)
-
-            if photo_files:
-                with st.expander(f"📸 Show Photos ({len(photo_files)})"):
-                    cols = st.columns(min(len(photo_files), 3))
-                    for i, photo in enumerate(photo_files):
-                        with cols[i % 3]:
-                            st.image(photo, width=220)
+            """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 2 — MAP VIEW
